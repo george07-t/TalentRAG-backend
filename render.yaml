@@ -10,15 +10,21 @@ services:
     name: talentrag-backend
     runtime: python
     buildCommand: './build.sh'
-    startCommand: 'python -m gunicorn backend.wsgi:application -k uvicorn.workers.UvicornWorker'
+    startCommand: 'gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT'
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: talentrag-db
           property: connectionString
-      - key: DJANGO_SECRET_KEY
-        generateValue: true
-      - key: WEB_CONCURRENCY
-        value: 4
       - key: OPENAI_API_KEY
         sync: false
+      - key: OPENAI_CHAT_MODEL
+        value: gpt-4o-mini
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .render.com
+      - key: WEB_CONCURRENCY
+        value: 4
