@@ -1,0 +1,17 @@
+.env
+db.sqlite3
+__pycache__/
+*.pyc
+media/
+staticfiles/
+.env
+*.log
+.vscode/
+.idea/
+.DS_Store
+.env.local
+.env.*.local
+.pytest_cache/
+celerybeat-schedule
+instance/
+.coverage
