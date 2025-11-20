@@ -8,7 +8,7 @@ class Session(models.Model):
     match_score = models.FloatField(null=True, blank=True)
     strengths = models.JSONField(default=list, blank=True)
     gaps = models.JSONField(default=list, blank=True)
-    insights = models.JSONField(default=dict, blank=True)
+    insights = models.TextField(blank=True, default='')  # Changed to TextField for paragraph format
     created_at = models.DateTimeField(auto_now_add=True)
 
 class ResumeChunk(models.Model):

@@ -40,7 +40,8 @@ def retrieve(session: Session, question: str, top_k: int = 4) -> List[Dict]:
     scored.sort(key=lambda x: x[0], reverse=True)
     results = []
     for sim, c in scored[:top_k]:
-        results.append({'text': c.text, 'score': sim})
+        snippet = c.text[:400]
+        results.append({'chunk_index': c.index, 'text': snippet, 'score': sim})
     return results
 
 def generate_answer(session: Session, question: str, retrieved: List[Dict]) -> str:
@@ -51,13 +52,21 @@ def generate_answer(session: Session, question: str, retrieved: List[Dict]) -> s
             history_messages.append({'role': 'user', 'content': m.question})
         else:
             history_messages.append({'role': 'assistant', 'content': m.answer})
-    context_block = '\n\n'.join([f"[Score {round(r['score'],3)}] {r['text'][:1500]}" for r in retrieved])
+    context_block = '\n\n'.join([f"[Context {i+1}]\n{r['text'][:1500]}" for i, r in enumerate(retrieved)])
     system_prompt = (
-        "You are an assistant helping a recruiter evaluate a candidate. "
-        "Use ONLY the provided resume context blocks. If unsure, say you don't have that information."
+        "You are an expert recruiter assistant helping evaluate a candidate. "
+        "Answer questions about the candidate based on the resume context provided below.\n\n"
+        "RELEVANT RESUME SECTIONS:\n"
+        f"{context_block}\n\n"
+        "Instructions:\n"
+        "- Be specific and cite actual information from the resume\n"
+        "- Provide detailed, complete answers (2-4 sentences)\n"
+        "- If information is not in the context, say so honestly\n"
+        "- Focus on facts, not assumptions\n"
+        "- Maintain a professional, objective tone"
     )
     messages = [{'role': 'system', 'content': system_prompt}] + history_messages + [
-        {'role': 'user', 'content': f"Context:\n{context_block}\n\nQuestion: {question}"}
+        {'role': 'user', 'content': question}
     ]
     client = get_client()
     resp = client.chat.completions.create(model=CHAT_MODEL, messages=messages, temperature=0.2)
@@ -67,8 +76,15 @@ def answer_question(session: Session, question: str) -> Dict:
     retrieved = retrieve(session, question)
     answer = generate_answer(session, question, retrieved)
     msg = ChatMessage.objects.create(session=session, role='assistant', question=question, answer=answer, retrieved_chunks=retrieved)
+    sources = [
+        {
+            'chunk_index': r['chunk_index'],
+            'score': round(r['score'], 4),
+            'preview': r['text']
+        } for r in retrieved
+    ]
     return {
         'answer': answer,
-        'retrieved': retrieved,
+        'sources': sources,
         'message_id': msg.id
     }
