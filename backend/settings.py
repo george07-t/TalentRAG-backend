@@ -3,9 +3,25 @@ from pathlib import Path
 import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-key')
+SECRET_KEY = os.environ.get('SECRET_KEY') or os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-key')
 DEBUG = os.environ.get('DEBUG', 'true').lower() == 'true'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+# ALLOWED_HOSTS configuration
+allowed_hosts_str = os.environ.get('ALLOWED_HOSTS', '')
+if allowed_hosts_str:
+    ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_str.split(',')]
+else:
+    ALLOWED_HOSTS = ['*']  # Allow all in development
+
+# Add Render domain if deployed there
+if os.environ.get('RENDER'):
+    import socket
+    hostname = socket.gethostname()
+    ALLOWED_HOSTS.append(hostname)
+    ALLOWED_HOSTS.append(f"{hostname}.onrender.com")
+    # Add wildcard for render.com subdomains
+    if '.onrender.com' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.onrender.com')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
