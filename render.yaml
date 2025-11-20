@@ -20,6 +20,8 @@ services:
         sync: false
       - key: OPENAI_CHAT_MODEL
         value: gpt-4o-mini
+      - key: OPENAI_EMBED_MODEL
+        value: text-embedding-3-small
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
