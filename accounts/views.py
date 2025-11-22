@@ -14,3 +14,10 @@ class RegisterView(APIView):
             return Response(serializer.errors, status=400)
         user = serializer.save()
         return Response({'id': user.id, 'username': user.username}, status=status.HTTP_201_CREATED)
+
+class Helathcheck(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
