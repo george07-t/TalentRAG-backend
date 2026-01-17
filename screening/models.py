@@ -13,6 +13,7 @@ class Session(models.Model):
 
 class ResumeChunk(models.Model):
     session = models.ForeignKey(Session, related_name='chunks', on_delete=models.CASCADE)
+    doc_type = models.CharField(max_length=20, default='resume')  # resume | job_description
     index = models.IntegerField()
     text = models.TextField()
     embedding = models.JSONField()  # list of floats

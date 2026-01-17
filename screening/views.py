@@ -18,7 +18,8 @@ class UploadView(APIView):
         jd_text = normalize_whitespace(read_file_content(jd_file))
 
         sections = split_sections(resume_text)
-        chunks = chunk_text(sections)
+        resume_chunks = chunk_text(sections)
+        jd_chunks = chunk_text(split_sections(jd_text))
         skills = extract_skills(resume_text)
         match_data = compute_match(skills, jd_text, resume_text)
 
@@ -30,7 +31,8 @@ class UploadView(APIView):
             gaps=match_data['gaps'],
             insights=match_data['insights']
         )
-        store_chunks(session, chunks)
+        store_chunks(session, resume_chunks, doc_type='resume')
+        store_chunks(session, jd_chunks, doc_type='job_description')
         return Response({'session': str(session.id), 'analysis': SessionSerializer(session).data})
 
 class AnalysisView(APIView):
